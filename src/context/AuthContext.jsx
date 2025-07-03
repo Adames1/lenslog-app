@@ -8,29 +8,53 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const getSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setSession(session);
+      setLoading(false);
+    };
+
+    getSession();
+
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_OUT") {
-        setSession(null);
-        setLoading(false);
-      } else if (session) {
-        setSession(session);
-      }
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
     });
 
     return () => {
-      subscription.unsubscribe();
+      subscription?.unsubscribe;
     };
   }, []);
 
   const signUp = async (email, password) => {
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: "http://localhost:5173/" },
+    });
+
+    if (error) throw error;
+
+    if (data?.user && data?.session) {
+      throw new Error("Correo ya registrado. Revisa tu bandeja de entrada.");
+    }
+
+    return data;
+  };
+
+  const signIn = async (email, password) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
     if (error) throw error;
   };
 
   return (
-    <AuthContext.Provider value={{ session, loading, signUp }}>
+    <AuthContext.Provider value={{ session, loading, signUp, signIn }}>
       {children}
     </AuthContext.Provider>
   );

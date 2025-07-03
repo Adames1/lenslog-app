@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { sessionAuth } from "../context/AuthContext";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 import { FaTimes, FaCheck } from "react-icons/fa";
 
@@ -52,9 +52,9 @@ function Register() {
       setPassword("");
       setConfirmPassword("");
 
-      navigate("/");
+      navigate("/confirmation-email");
     } catch (error) {
-      console.error("Error signing up", error);
+      toast.error(error.message);
     }
   };
 
