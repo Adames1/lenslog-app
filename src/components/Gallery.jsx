@@ -3,6 +3,8 @@ import { sessionAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
 import Masonry from "react-masonry-css";
 import FsLightbox from "fslightbox-react";
+import Loading from "./Loading";
+import NotImages from "./NotImages";
 
 const breakpointColumnsObj = {
   default: 4,
@@ -25,6 +27,7 @@ function Gallery() {
         setImages(urls);
       } catch (error) {
         toast.error("Error fetching images. Please try again later...");
+        console.error(error.message);
       } finally {
         setLoading(false);
       }
@@ -40,7 +43,7 @@ function Gallery() {
 
   return (
     <div>
-      {loading && <p>Cargando imágenes...</p>}
+      {loading && <Loading />}
 
       <Masonry
         breakpointCols={breakpointColumnsObj}
@@ -58,7 +61,7 @@ function Gallery() {
         ))}
       </Masonry>
 
-      {!loading && images.length === 0 && <p>No hay imágenes subidas aún.</p>}
+      {!loading && images.length === 0 && <NotImages />}
 
       {/* Lightbox */}
       <FsLightbox toggler={toggler} sources={images} slide={slide} />
