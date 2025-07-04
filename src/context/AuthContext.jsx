@@ -53,8 +53,73 @@ export const AuthProvider = ({ children }) => {
     if (error) throw error;
   };
 
+  const signOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+  };
+
+  const uploadImage = async (file) => {
+    const userId = session.user.id;
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${Date.now()}.${fileExt}`;
+    const filePath = `${userId}/${fileName}`;
+
+    const { error } = await supabase.storage
+      .from("images-upload")
+      .upload(filePath, file);
+
+    if (error) throw error;
+
+    const { data } = await supabase.storage
+      .from("images-upload")
+      .getPublicUrl("filePath");
+
+    return data.publicUrl;
+  };
+
+  const listUserImages = async () => {
+    const userId = session.user.id;
+
+    const { data: files, error } = await supabase.storage
+      .from("images-upload")
+      .list(userId, {
+        limit: 100,
+        offset: 0,
+        sortBy: { column: "created_at", order: "desc" },
+      });
+
+    if (error) throw error;
+
+    const urls = await Promise.all(
+      files.map(async (file) => {
+        const { data, error } = await supabase.storage
+          .from("images-upload")
+          .createSignedUrl(`${userId}/${file.name}`, 60 * 60); // 1 hora
+
+        if (error) {
+          console.error("Error al generar signed URL:", error.message);
+          return null;
+        }
+
+        return data.signedUrl;
+      })
+    );
+
+    return urls.filter((url) => url !== null);
+  };
+
   return (
-    <AuthContext.Provider value={{ session, loading, signUp, signIn }}>
+    <AuthContext.Provider
+      value={{
+        session,
+        loading,
+        signUp,
+        signIn,
+        signOut,
+        uploadImage,
+        listUserImages,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
