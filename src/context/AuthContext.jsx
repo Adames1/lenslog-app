@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: "http://localhost:5173/" },
+      options: { emailRedirectTo: "https://lenslog.netlify.app/" },
     });
 
     if (error) throw error;
